@@ -77,9 +77,34 @@
     <!-- Three.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     
-    <!-- Structured Data - 20 Individual JobPosting Schemas -->
+    <!-- Structured Data - 21 Individual JobPosting Schemas -->
     <script type="application/ld+json">
     [
+        {
+            "@context": "https://schema.org",
+            "@type": "JobPosting",
+            "title": "Co-founder & CEO",
+            "description": "Distributed Ledger Technologies (DLT) is looking for a Co-founder to step in as Chief Executive Officer. Set company strategy, lead fundraising, hire the founding team, and represent DLT externally as we scale our post-quantum blockchain stack and global payment rails. Founder mindset and operating experience essential. Equity-led compensation.",
+            "datePosted": "2026-05-06",
+            "validThrough": "2026-12-31",
+            "employmentType": "FULL_TIME",
+            "hiringOrganization": {
+                "@type": "Organization",
+                "name": "Distributed Ledger Technologies",
+                "sameAs": "https://distributedledgertechnologies.com",
+                "logo": "https://skyknet.com/logo.png"
+            },
+            "jobLocation": {
+                "@type": "Place",
+                "address": {
+                    "@type": "PostalAddress",
+                    "addressLocality": "Remote",
+                    "addressRegion": "Worldwide",
+                    "addressCountry": "US"
+                }
+            },
+            "jobLocationType": "TELECOMMUTE"
+        },
         {
             "@context": "https://schema.org",
             "@type": "JobPosting",
@@ -2410,6 +2435,130 @@
                 min-height: 44px;
             }
         }
+
+        /* Featured Role: Co-founder & CEO */
+        .featured-role {
+            margin: 60px 0 50px;
+            padding: 64px 56px;
+            background: linear-gradient(135deg, rgba(0,255,65,0.08), rgba(0,212,255,0.04));
+            border: 2px solid rgba(0,255,65,0.45);
+            border-radius: 24px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 80px rgba(0,255,65,0.18), inset 0 0 50px rgba(0,255,65,0.05);
+        }
+        .featured-role::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(0,255,65,0.08) 0%, transparent 60%);
+            animation: featured-pulse 8s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+        @keyframes featured-pulse {
+            0%, 100% { transform: scale(1); opacity: 0.7; }
+            50% { transform: scale(1.15); opacity: 1; }
+        }
+        .featured-role > * { position: relative; z-index: 1; }
+        .featured-tag {
+            display: inline-block;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 11px;
+            font-weight: 900;
+            letter-spacing: 4px;
+            color: #000;
+            background: #00ff41;
+            padding: 7px 18px;
+            border-radius: 4px;
+            margin-bottom: 24px;
+            text-transform: uppercase;
+            box-shadow: 0 0 20px rgba(0,255,65,0.5);
+        }
+        .featured-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 64px;
+            font-weight: 900;
+            color: #fff;
+            letter-spacing: 1px;
+            margin: 0 0 18px;
+            line-height: 1.05;
+            text-shadow: 0 0 40px rgba(0,255,65,0.4);
+        }
+        .featured-title-accent {
+            background: linear-gradient(135deg, #00ff41, #00d4ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .featured-subtitle {
+            font-size: 22px;
+            color: #00ff41;
+            margin: 0 auto 28px;
+            max-width: 760px;
+            font-weight: 600;
+            line-height: 1.4;
+        }
+        .featured-description {
+            font-size: 16px;
+            color: #ccc;
+            line-height: 1.75;
+            max-width: 800px;
+            margin: 0 auto 40px;
+        }
+        .featured-actions {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 18px;
+        }
+        .featured-apply {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            background: linear-gradient(135deg, #00ff41, #00cc33);
+            color: #000;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 18px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            padding: 20px 48px;
+            border-radius: 12px;
+            text-decoration: none;
+            text-transform: uppercase;
+            transition: transform 0.2s, box-shadow 0.3s;
+            box-shadow: 0 4px 30px rgba(0,255,65,0.4);
+            cursor: pointer;
+        }
+        .featured-apply:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 8px 50px rgba(0,255,65,0.65);
+        }
+        .featured-apply svg {
+            width: 22px;
+            height: 22px;
+        }
+        .featured-meta {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            color: #888;
+            font-size: 13px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+        .featured-sep { color: #444; }
+        @media (max-width: 768px) {
+            .featured-role { padding: 44px 24px; margin: 40px 0 36px; border-radius: 16px; }
+            .featured-title { font-size: 38px; }
+            .featured-subtitle { font-size: 16px; }
+            .featured-description { font-size: 14px; }
+            .featured-apply { font-size: 14px; padding: 16px 30px; letter-spacing: 1.5px; }
+            .featured-tag { font-size: 10px; letter-spacing: 3px; padding: 6px 14px; }
+        }
     </style>
 </head>
 <body>
@@ -2701,10 +2850,36 @@
             </p>
         </header>
 
+        <!-- Featured Role: Co-founder & CEO -->
+        <section class="featured-role reveal" id="cofounder-ceo">
+            <div class="featured-tag">Founding Role · Open Now</div>
+            <h2 class="featured-title">Co-founder &amp; CEO of <span class="featured-title-accent">DLT</span></h2>
+            <p class="featured-subtitle">We're looking for a Co-founder to lead Distributed Ledger Technologies as Chief Executive Officer.</p>
+            <p class="featured-description">
+                You'll set company strategy, drive fundraising, hire the founding team, and represent DLT externally
+                as we scale our post-quantum blockchain stack and global payment rails. The technology is shipped —
+                what's missing is the operator who can take it to a billion users. Founder mindset, operating experience,
+                and conviction in post-quantum infrastructure essential. Equity-led compensation. Remote, worldwide.
+            </p>
+            <div class="featured-actions">
+                <a href="#" class="featured-apply" onclick="openModal('Leadership', 'Co-founder &amp; CEO of DLT'); return false;">
+                    Apply for Co-founder &amp; CEO
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </a>
+                <div class="featured-meta">
+                    <span>Equity-led</span>
+                    <span class="featured-sep">·</span>
+                    <span>Remote / Worldwide</span>
+                    <span class="featured-sep">·</span>
+                    <span>Full-time</span>
+                </div>
+            </div>
+        </section>
+
         <!-- Stats -->
         <div class="careers-stats reveal">
             <div class="careers-stat">
-                <div class="careers-stat-value">20</div>
+                <div class="careers-stat-value">21</div>
                 <div class="careers-stat-label">Open Positions</div>
             </div>
             <div class="careers-stat">
