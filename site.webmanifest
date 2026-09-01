@@ -1,11 +1,11 @@
 {
-  "name": "SkyKnet",
-  "short_name": "SkyKnet",
+  "name": "DLT",
+  "short_name": "DLT",
   "description": "Enterprise Blockchain Infrastructure - Building the Future of Digital Finance",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#000000",
-  "theme_color": "#00ffff",
+  "theme_color": "#ff1a3c",
   "icons": [
     {
       "src": "/icon-192x192.png",
