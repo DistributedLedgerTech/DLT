@@ -206,10 +206,12 @@ footer .bottom a{color:var(--muted)}
 body.loading-active{overflow:hidden}
 .content{position:relative;z-index:1;opacity:0;transition:opacity 1s ease}
 .content.visible{opacity:1}
+.content.visible .hero{animation:heroRise 1.1s cubic-bezier(.16,1,.3,1) both}
+@keyframes heroRise{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
 @keyframes blink{50%{opacity:0}}
 @keyframes fadeInSkip{to{opacity:1}}
-.loading-screen{position:fixed;inset:0;background:#000;z-index:10000;display:flex;align-items:center;justify-content:center;overflow:hidden}
-.loading-screen.hidden{opacity:0;visibility:hidden;pointer-events:none;filter:brightness(1.5);transition:opacity .6s ease,visibility .6s ease,filter .3s ease}
+.loading-screen{position:fixed;inset:0;background:#000;z-index:10000;display:flex;align-items:center;justify-content:center;overflow:hidden;transform:scale(1);will-change:opacity,transform,filter}
+.loading-screen.hidden{opacity:0;visibility:hidden;pointer-events:none;filter:brightness(1.6) blur(10px);transform:scale(1.045);transition:opacity .85s cubic-bezier(.4,0,.2,1),visibility .85s,filter .85s cubic-bezier(.4,0,.2,1),transform .85s cubic-bezier(.4,0,.2,1)}
 .loading-globe-container{position:absolute;width:min(70vw,70vh);height:min(70vw,70vh);top:50%;left:50%;transform:translate(-50%,-50%);z-index:2;transition:all 3s cubic-bezier(.4,0,.05,1)}
 .loading-globe-container.slid-left{width:min(40vw,500px);height:min(40vw,500px);left:22%}
 #loadingGlobeCanvas{width:100%;height:100%}
@@ -223,6 +225,10 @@ body.loading-active{overflow:hidden}
 .terminal-title{font-size:11px;color:#fff;margin-left:12px;letter-spacing:.1em}
 .terminal-body{flex:1;padding:12px 16px;overflow-y:auto;font-size:11px;line-height:1.6;position:relative}
 .terminal-body::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(255,26,60,.015) 2px,rgba(255,26,60,.015) 4px);pointer-events:none;z-index:1}
+.loading-terminal::after{content:'';position:absolute;left:0;right:0;top:-30%;height:26%;pointer-events:none;z-index:2;
+  background:linear-gradient(180deg,transparent,rgba(255,26,60,.05) 45%,rgba(255,255,255,.035) 50%,rgba(255,26,60,.05) 55%,transparent);
+  animation:scanSweep 6.5s linear infinite}
+@keyframes scanSweep{to{transform:translateY(520%)}}
 .terminal-body::-webkit-scrollbar{width:4px}
 .terminal-body::-webkit-scrollbar-track{background:rgba(255,26,60,.03)}
 .terminal-body::-webkit-scrollbar-thumb{background:rgba(255,26,60,.15);border-radius:3px}
@@ -233,7 +239,9 @@ body.loading-active{overflow:hidden}
 .terminal-prompt{color:#ff1a3c}.terminal-cmd{color:#ff1a3c}.terminal-typing{display:inline}
 .terminal-cursor{display:inline-block;width:7px;height:13px;background:#ff1a3c;animation:blink .5s step-end infinite;vertical-align:text-bottom;margin-left:2px}
 .loading-progress{position:absolute;bottom:32px;left:50%;transform:translateX(-50%);width:260px;height:3px;background:rgba(255,26,60,.1);overflow:hidden;z-index:10;border-radius:2px;border:1px solid rgba(255,26,60,.15)}
-.loading-progress-bar{height:100%;background:#ff1a3c;width:0%;transition:width .3s ease;box-shadow:0 0 10px #ff1a3c,0 0 4px #ff1a3c}
+.loading-progress-bar{height:100%;width:0%;transition:width .4s cubic-bezier(.4,0,.2,1);box-shadow:0 0 10px #ff1a3c,0 0 4px #ff1a3c;
+  background:linear-gradient(90deg,#ff1a3c,#ff6d82,#ff1a3c);background-size:200% 100%;animation:pbFlow 1.6s linear infinite}
+@keyframes pbFlow{to{background-position:-200% 0}}
 .loading-progress-label{position:absolute;bottom:42px;left:50%;transform:translateX(-50%);font-size:10px;color:#ff1a3c;letter-spacing:.2em;z-index:10;text-shadow:0 0 6px rgba(255,26,60,.5)}
 .loading-skip{position:absolute;bottom:24px;right:24px;font-family:inherit;font-size:10px;color:#fff;background:transparent;border:1px solid rgba(255,255,255,.1);padding:5px 14px;cursor:pointer;letter-spacing:.15em;text-transform:uppercase;transition:all .2s ease;opacity:0;animation:fadeInSkip .5s ease 2s forwards;z-index:10}
 .loading-skip:hover{color:#ff1a3c;border-color:#ff1a3c}
@@ -602,6 +610,7 @@ function skipLoading() {
     document.getElementById('loadingScreen').classList.add('hidden');
     document.body.classList.remove('loading-active');
     document.getElementById('mainContent').classList.add('visible');
+    setTimeout(() => { if (window._stopGlobe) window._stopGlobe(); }, 1000);
 }
 
 function skipLoadingAndScrollToHash() {
@@ -630,19 +639,24 @@ function finishLoading() {
         document.getElementById('loadingScreen').classList.add('hidden');
         document.body.classList.remove('loading-active');
         document.getElementById('mainContent').classList.add('visible');
+        setTimeout(() => { if (window._stopGlobe) window._stopGlobe(); }, 1000);
     }, 400);
 }
 
-/* Three.js globe for the loading screen */
+/* Three.js globe for the loading screen — v2
+   starfield · fresnel atmosphere · graticule · network arcs with traveling
+   pulses · node ping rings · continent fade-in · delta-time motion (consistent
+   on 60Hz and 120Hz) · camera dolly entrance · disposed once the intro ends */
 function initLoadingGlobe() {
     const canvas = document.getElementById('loadingGlobeCanvas');
     if (!canvas || typeof THREE === 'undefined') return;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
-    camera.position.z = 4.8;
+    camera.position.z = 6.2;
     const group = new THREE.Group();
 
     const R = 1.5;
@@ -663,16 +677,45 @@ function initLoadingGlobe() {
     ocean.scale.y = Rp / R;
     group.add(ocean);
 
+    /* faint graticule so the sphere reads before the continents arrive */
+    const gratMat = new THREE.LineBasicMaterial({ color: 0xff1a3c, transparent: true, opacity: 0.07 });
+    for (let lat = -60; lat <= 60; lat += 30) {
+        const pts = [];
+        for (let lon = -180; lon <= 180; lon += 5) pts.push(latLonToVec(lat, lon, 1.0));
+        group.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), gratMat));
+    }
+    for (let lon = -180; lon < 180; lon += 30) {
+        const pts = [];
+        for (let lat = -85; lat <= 85; lat += 5) pts.push(latLonToVec(lat, lon, 1.0));
+        group.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), gratMat));
+    }
+
+    /* fresnel rim atmosphere */
+    const atmo = new THREE.Mesh(
+        new THREE.SphereGeometry(R * 1.22, 48, 32),
+        new THREE.ShaderMaterial({
+            vertexShader: 'varying vec3 vN; void main(){ vN = normalize(normalMatrix * normal); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+            fragmentShader: 'varying vec3 vN; void main(){ float i = pow(0.62 - dot(vN, vec3(0.0, 0.0, 1.0)), 3.2); gl_FragColor = vec4(1.0, 0.10, 0.24, 1.0) * i; }',
+            side: THREE.BackSide, blending: THREE.AdditiveBlending, transparent: true, depthWrite: false
+        })
+    );
+    group.add(atmo);
+
+    /* continents — collected so they can fade in instead of popping */
+    const landMats = [];
+    let landFadeStart = null;
     fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/land-10m.json')
         .then(r => r.json())
         .then(topo => {
             const geo = topojson.feature(topo, topo.objects.land);
-            const mat = new THREE.LineBasicMaterial({ color: 0xff1a3c, transparent: true, opacity: 0.95 });
+            const proto = new THREE.LineBasicMaterial({ color: 0xff1a3c, transparent: true, opacity: 0 });
             function proc(geometry) {
                 const ring = (coords) => {
                     if (coords.length > 3) {
                         const pts = coords.map(c => latLonToVec(c[1], c[0], 1.0));
-                        group.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), mat.clone()));
+                        const m = proto.clone();
+                        landMats.push(m);
+                        group.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), m));
                     }
                 };
                 if (geometry.type === 'Polygon') geometry.coordinates.forEach(ring);
@@ -681,6 +724,7 @@ function initLoadingGlobe() {
             if (geo.type === 'FeatureCollection') geo.features.forEach(f => proc(f.geometry));
             else if (geo.type === 'Feature') proc(geo.geometry);
             else proc(geo);
+            landFadeStart = performance.now();
         }).catch(() => {});
 
     const nodes = [
@@ -693,25 +737,69 @@ function initLoadingGlobe() {
     const nodeMat = new THREE.MeshBasicMaterial({ color: 0xff4359 });
     const glowGeo = new THREE.SphereGeometry(0.05, 12, 12);
     const glowMat = new THREE.MeshBasicMaterial({ color: 0xff4359, transparent: true, opacity: 0.4 });
+    const ringGeo = new THREE.RingGeometry(0.85, 1.0, 32);
     const nodeObjs = [];
-    nodes.forEach(n => {
+    nodes.forEach((n, i) => {
         const pos = latLonToVec(n.lat, n.lon, 1.01);
         const nd = new THREE.Mesh(nodeGeo, nodeMat.clone());
         nd.position.copy(pos); group.add(nd);
         const gl = new THREE.Mesh(glowGeo, glowMat.clone());
         gl.position.copy(pos); group.add(gl);
-        nodeObjs.push({ glow: gl });
+        /* expanding ping ring, tangent to the surface */
+        const ring = new THREE.Mesh(ringGeo, new THREE.MeshBasicMaterial({
+            color: 0xff1a3c, transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false }));
+        ring.position.copy(pos);
+        ring.lookAt(pos.clone().multiplyScalar(2));
+        group.add(ring);
+        nodeObjs.push({ glow: gl, ring, phase: i * 0.85 });
     });
+
+    /* network arcs between nodes, drawn on then carrying pulses */
+    const links = [[0,2],[0,8],[0,1],[2,4],[2,10],[4,5],[5,7],[6,7],[6,11],[8,9],[10,6],[1,5]];
+    const ARC_SEGS = 72;
+    const arcObjs = [];
+    links.forEach((lk, k) => {
+        const A = latLonToVec(nodes[lk[0]].lat, nodes[lk[0]].lon, 1.01);
+        const B = latLonToVec(nodes[lk[1]].lat, nodes[lk[1]].lon, 1.01);
+        const lift = 1.06 + A.distanceTo(B) * 0.16;
+        const mid = A.clone().add(B).multiplyScalar(0.5).normalize().multiplyScalar(R * lift);
+        const curve = new THREE.QuadraticBezierCurve3(A, mid, B);
+        const geo = new THREE.BufferGeometry().setFromPoints(curve.getPoints(ARC_SEGS));
+        geo.setDrawRange(0, 0);
+        const line = new THREE.Line(geo, new THREE.LineBasicMaterial({ color: 0xff4359, transparent: true, opacity: 0.30 }));
+        group.add(line);
+        const dot = new THREE.Mesh(new THREE.SphereGeometry(0.016, 8, 8),
+            new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0, depthWrite: false }));
+        group.add(dot);
+        arcObjs.push({ curve, geo, dot, born: 1.0 + k * 0.3, speed: 0.22 + Math.random() * 0.18, off: Math.random() });
+    });
+
+    /* starfield behind everything, counter-rotating slowly */
+    const starN = reduce ? 220 : 700;
+    const sp = new Float32Array(starN * 3);
+    for (let i = 0; i < starN; i++) {
+        const r = 16 + Math.random() * 42;
+        const th = Math.random() * Math.PI * 2;
+        const ph = Math.acos(2 * Math.random() - 1);
+        sp[i * 3] = r * Math.sin(ph) * Math.cos(th);
+        sp[i * 3 + 1] = r * Math.cos(ph);
+        sp[i * 3 + 2] = r * Math.sin(ph) * Math.sin(th);
+    }
+    const starGeo = new THREE.BufferGeometry();
+    starGeo.setAttribute('position', new THREE.BufferAttribute(sp, 3));
+    const stars = new THREE.Points(starGeo, new THREE.PointsMaterial({
+        color: 0xff6d82, size: 0.07, transparent: true, opacity: 0.5, sizeAttenuation: true, depthWrite: false }));
+    scene.add(stars);
 
     group.rotation.x = 0.3;
     group.rotation.y = 1.62;
     scene.add(group);
 
-    let t = 0;
+    let t = 0, last = null, raf = 0;
     let spinStartTime = null;
     const SPIN_DURATION = 10;
-    const BASE_SPEED = 0.003;
-    const MAX_SPEED = 1000 * 2 * Math.PI / 60;
+    const BASE_SPEED = 0.18;                                   /* rad/s */
+    const MAX_SPEED = reduce ? BASE_SPEED : 2 * Math.PI * 1000; /* warp */
 
     function resize() {
         const w = canvas.parentElement.clientWidth || 400;
@@ -723,27 +811,64 @@ function initLoadingGlobe() {
     resize();
     new ResizeObserver(resize).observe(canvas.parentElement);
 
-    function animate() {
-        requestAnimationFrame(animate);
-        t += 0.016;
+    function animate(now) {
+        raf = requestAnimationFrame(animate);
+        if (last === null) last = now;
+        const dt = Math.min((now - last) / 1000, 0.05);
+        last = now; t += dt;
+
+        /* entrance dolly 6.2 → 4.8 with gentle idle sway after */
+        const e = Math.min(t / 1.8, 1);
+        camera.position.z = 6.2 - 1.4 * (1 - Math.pow(1 - e, 3));
+        camera.position.x = Math.sin(t * 0.31) * 0.05;
+        camera.position.y = Math.cos(t * 0.23) * 0.04;
+        camera.lookAt(0, 0, 0);
+
+        let speed = BASE_SPEED;
         if (spinStartTime !== null) {
-            const elapsed = (performance.now() - spinStartTime) / 1000;
-            const progress = Math.min(elapsed / SPIN_DURATION, 1);
-            const expFactor = Math.pow(MAX_SPEED / BASE_SPEED, progress);
-            group.rotation.y += BASE_SPEED * expFactor;
-        } else {
-            group.rotation.y += BASE_SPEED;
+            const p = Math.min((performance.now() - spinStartTime) / 1000 / SPIN_DURATION, 1);
+            speed = BASE_SPEED * Math.pow(MAX_SPEED / BASE_SPEED, p);
         }
+        group.rotation.y += speed * dt;
+        stars.rotation.y -= dt * 0.008;
+
+        if (landFadeStart !== null) {
+            const o = Math.min((now - landFadeStart) / 1200, 1) * 0.95;
+            for (let i = 0; i < landMats.length; i++) landMats[i].opacity = o;
+        }
+
         nodeObjs.forEach((o, i) => {
             o.glow.material.opacity = 0.35 + Math.sin(t * 2.5 + i * 0.3) * 0.25;
             const s = 1 + Math.sin(t * 2 + i * 0.25) * 0.4;
             o.glow.scale.set(s, s, s);
+            const cyc = (t * 0.55 + o.phase) % 3;
+            if (cyc < 1.25) {
+                const rs = 0.05 + cyc * 0.10;
+                o.ring.scale.set(rs, rs, 1);
+                o.ring.material.opacity = 0.7 * (1 - cyc / 1.25);
+            } else {
+                o.ring.material.opacity = 0;
+            }
         });
+
+        arcObjs.forEach(a => {
+            const life = t - a.born;
+            if (life <= 0) return;
+            const seg = Math.min(ARC_SEGS, Math.floor(life / 1.4 * ARC_SEGS));
+            a.geo.setDrawRange(0, seg + 1);
+            if (seg >= ARC_SEGS) {
+                const u = (t * a.speed + a.off) % 1;
+                a.curve.getPoint(u, a.dot.position);
+                a.dot.material.opacity = Math.sin(u * Math.PI) * 0.9;
+            }
+        });
+
         renderer.render(scene, camera);
     }
-    animate();
+    raf = requestAnimationFrame(animate);
 
     window._startGlobeSpin = function() { spinStartTime = performance.now(); };
+    window._stopGlobe = function() { cancelAnimationFrame(raf); try { renderer.dispose(); } catch (e) {} };
 }
 
 /* main loading sequence */

@@ -2097,11 +2097,11 @@
                 dpPositions[i * 3 + 1] = y;
                 dpPositions[i * 3 + 2] = z;
 
-                // Color: mix of green tones (0xff1a3c to 0xff4359)
-                const greenVariance = 0.5 + Math.random() * 0.5;
-                dpColors[i * 3] = 0;
-                dpColors[i * 3 + 1] = greenVariance;
-                dpColors[i * 3 + 2] = Math.random() * 0.5;
+                // Color: mix of crimson tones (0xff1a3c to 0xff4359)
+                const crimsonVariance = 0.5 + Math.random() * 0.5;
+                dpColors[i * 3] = crimsonVariance;
+                dpColors[i * 3 + 1] = 0.10 * crimsonVariance;
+                dpColors[i * 3 + 2] = 0.23 * crimsonVariance + Math.random() * 0.08;
 
                 // Random sizes for depth variation
                 dpSizes[i] = 0.5 + Math.random() * 1.5;
