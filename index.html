@@ -102,6 +102,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Oxygen:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="nav.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
 <style>
 :root{
   --red:#ff1a3c;--red2:#ff4359;--red-dim:#8f0f22;
@@ -200,10 +201,83 @@ footer .blurb{color:var(--dim);max-width:34ch;margin-top:10px;line-height:1.6}
 footer .bottom{border-top:1px solid var(--line);margin-top:30px;padding-top:18px;text-align:center;color:var(--dim)}
 footer .bottom a{color:var(--muted)}
 @media(prefers-reduced-motion:reduce){*{animation:none!important}}
+
+/* ── intro loading screen: globe + terminal ── */
+body.loading-active{overflow:hidden}
+.content{position:relative;z-index:1;opacity:0;transition:opacity 1s ease}
+.content.visible{opacity:1}
+@keyframes blink{50%{opacity:0}}
+@keyframes fadeInSkip{to{opacity:1}}
+.loading-screen{position:fixed;inset:0;background:#000;z-index:10000;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.loading-screen.hidden{opacity:0;visibility:hidden;pointer-events:none;filter:brightness(1.5);transition:opacity .6s ease,visibility .6s ease,filter .3s ease}
+.loading-globe-container{position:absolute;width:min(70vw,70vh);height:min(70vw,70vh);top:50%;left:50%;transform:translate(-50%,-50%);z-index:2;transition:all 3s cubic-bezier(.4,0,.05,1)}
+.loading-globe-container.slid-left{width:min(40vw,500px);height:min(40vw,500px);left:22%}
+#loadingGlobeCanvas{width:100%;height:100%}
+.loading-terminal{position:absolute;top:10%;right:5%;bottom:10%;width:50%;background:rgba(0,0,0,.92);border:1px solid rgba(255,26,60,.3);border-radius:8px;overflow:hidden;
+  box-shadow:0 0 30px rgba(255,26,60,.15),0 0 60px rgba(255,26,60,.05),inset 0 0 30px rgba(255,26,60,.02);display:flex;flex-direction:column;z-index:3;
+  opacity:0;transform:scale(.95) translateY(10px);transition:opacity .8s ease,transform .8s cubic-bezier(.25,.46,.45,.94)}
+.loading-terminal.visible{opacity:1;transform:scale(1) translateY(0)}
+.terminal-header{background:rgba(255,26,60,.08);padding:8px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(255,26,60,.15);flex-shrink:0}
+.terminal-dot{width:10px;height:10px;border-radius:50%}
+.terminal-dot.red{background:#ff5f56}.terminal-dot.yellow{background:#ffbd2e}.terminal-dot.green{background:#27ca3f}
+.terminal-title{font-size:11px;color:#fff;margin-left:12px;letter-spacing:.1em}
+.terminal-body{flex:1;padding:12px 16px;overflow-y:auto;font-size:11px;line-height:1.6;position:relative}
+.terminal-body::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(255,26,60,.015) 2px,rgba(255,26,60,.015) 4px);pointer-events:none;z-index:1}
+.terminal-body::-webkit-scrollbar{width:4px}
+.terminal-body::-webkit-scrollbar-track{background:rgba(255,26,60,.03)}
+.terminal-body::-webkit-scrollbar-thumb{background:rgba(255,26,60,.15);border-radius:3px}
+.terminal-line{color:#fff;text-shadow:0 0 3px rgba(255,26,60,.15);white-space:pre-wrap;word-break:break-all}
+.terminal-line.success{color:#ff1a3c;text-shadow:0 0 4px rgba(255,26,60,.4)}
+.terminal-line.info{color:#ff1a3c;text-shadow:0 0 4px rgba(255,26,60,.3)}
+.terminal-line.warning{color:#ffaa00;text-shadow:0 0 4px rgba(255,170,0,.3)}
+.terminal-prompt{color:#ff1a3c}.terminal-cmd{color:#ff1a3c}.terminal-typing{display:inline}
+.terminal-cursor{display:inline-block;width:7px;height:13px;background:#ff1a3c;animation:blink .5s step-end infinite;vertical-align:text-bottom;margin-left:2px}
+.loading-progress{position:absolute;bottom:32px;left:50%;transform:translateX(-50%);width:260px;height:3px;background:rgba(255,26,60,.1);overflow:hidden;z-index:10;border-radius:2px;border:1px solid rgba(255,26,60,.15)}
+.loading-progress-bar{height:100%;background:#ff1a3c;width:0%;transition:width .3s ease;box-shadow:0 0 10px #ff1a3c,0 0 4px #ff1a3c}
+.loading-progress-label{position:absolute;bottom:42px;left:50%;transform:translateX(-50%);font-size:10px;color:#ff1a3c;letter-spacing:.2em;z-index:10;text-shadow:0 0 6px rgba(255,26,60,.5)}
+.loading-skip{position:absolute;bottom:24px;right:24px;font-family:inherit;font-size:10px;color:#fff;background:transparent;border:1px solid rgba(255,255,255,.1);padding:5px 14px;cursor:pointer;letter-spacing:.15em;text-transform:uppercase;transition:all .2s ease;opacity:0;animation:fadeInSkip .5s ease 2s forwards;z-index:10}
+.loading-skip:hover{color:#ff1a3c;border-color:#ff1a3c}
+@media (max-width:900px){
+  .loading-globe-container{width:min(50vw,50vh);height:min(50vw,50vh)}
+  .loading-globe-container.slid-left{width:min(25vw,200px);height:min(25vw,200px);left:50%;top:8%;transform:translate(-50%,0)}
+  .loading-terminal{top:auto;right:3%;left:3%;bottom:60px;width:auto;height:55%;background:rgba(16,1,3,.75);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-radius:10px}
+  .terminal-body{font-size:9px;line-height:1.4;padding:8px 10px}
+  .loading-skip{bottom:16px;right:16px;font-size:9px}
+  .loading-progress{bottom:16px;left:16px;transform:none;width:120px}
+  .loading-progress-label{bottom:22px;left:16px;transform:none}
+}
+@media (max-width:480px){
+  .loading-globe-container{width:min(45vw,45vh);height:min(45vw,45vh)}
+  .loading-globe-container.slid-left{width:100px;height:100px;top:4%}
+  .loading-terminal{height:60%;bottom:50px}
+  .terminal-body{font-size:7.5px;padding:6px 8px}
+  .terminal-dot{width:8px;height:8px}
+}
 </style>
 </head>
-<body>
+<body class="loading-active">
+
+<!-- LOADING SCREEN: globe + terminal intro -->
+<div class="loading-screen" id="loadingScreen">
+    <div class="loading-globe-container" id="globeContainer">
+        <canvas id="loadingGlobeCanvas"></canvas>
+    </div>
+    <div class="loading-terminal" id="loadingTerminal">
+        <div class="terminal-header">
+            <span class="terminal-dot red"></span>
+            <span class="terminal-dot yellow"></span>
+            <span class="terminal-dot green"></span>
+            <span class="terminal-title">xcoin-node &mdash; bootstrap</span>
+        </div>
+        <div class="terminal-body" id="terminalBody"></div>
+    </div>
+    <div class="loading-progress"><div class="loading-progress-bar" id="progressBar"></div></div>
+    <div class="loading-progress-label" id="progressLabel">0%</div>
+    <button class="loading-skip" id="skipBtn" onclick="skipLoading()">SKIP [ENTER] &rarr;</button>
+</div>
+
 <canvas id="webgl"></canvas>
+<div class="content" id="mainContent">
 
 <nav class="nav">
     <a href="index.html" class="logo" aria-label="DLT Home">
@@ -348,6 +422,8 @@ footer .bottom a{color:var(--muted)}
   </div>
   <div class="bottom">&copy; 2026 Crafted with precision by <a href="https://xerointel.com" rel="noopener">XeroIntel</a></div>
 </div></footer>
+
+</div><!-- /content -->
 
 <script>
 /* Background scene — the original DLT animation (grid floor, particle stream,
@@ -513,6 +589,346 @@ footer .bottom a{color:var(--muted)}
 <script>
 function openMobileMenu(){document.getElementById('mobileMenu').classList.add('visible');document.body.style.overflow='hidden';}
 function closeMobileMenu(){document.getElementById('mobileMenu').classList.remove('visible');document.body.style.overflow='';}
+</script>
+
+<script>
+/* ── intro loading sequence: globe + terminal boot ── */
+let loadingDone = false;
+
+function shouldSkipLoading() { return window.location.hash && window.location.hash.length > 1; }
+
+function skipLoading() {
+    loadingDone = true;
+    document.getElementById('loadingScreen').classList.add('hidden');
+    document.body.classList.remove('loading-active');
+    document.getElementById('mainContent').classList.add('visible');
+}
+
+function skipLoadingAndScrollToHash() {
+    skipLoading();
+    const hash = window.location.hash;
+    if (hash) setTimeout(() => { const el = document.querySelector(hash); if (el) el.scrollIntoView({ behavior: 'smooth' }); }, 100);
+}
+
+function corruptAndCorrect(lineEl) {
+    const original = lineEl.textContent;
+    const chars = original.split('');
+    const idx = Math.floor(Math.random() * chars.length);
+    chars[idx] = String.fromCharCode(33 + Math.floor(Math.random() * 93));
+    lineEl.textContent = chars.join('');
+    setTimeout(() => { lineEl.textContent = original; }, 80);
+}
+
+function finishLoading() {
+    if (loadingDone) return;
+    loadingDone = true;
+    const pb = document.getElementById('progressBar');
+    const pl = document.getElementById('progressLabel');
+    if (pb) pb.style.width = '100%';
+    if (pl) pl.textContent = '100%';
+    setTimeout(() => {
+        document.getElementById('loadingScreen').classList.add('hidden');
+        document.body.classList.remove('loading-active');
+        document.getElementById('mainContent').classList.add('visible');
+    }, 400);
+}
+
+/* Three.js globe for the loading screen */
+function initLoadingGlobe() {
+    const canvas = document.getElementById('loadingGlobeCanvas');
+    if (!canvas || typeof THREE === 'undefined') return;
+
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
+    camera.position.z = 4.8;
+    const group = new THREE.Group();
+
+    const R = 1.5;
+    const Rp = R * 0.9966;
+
+    function latLonToVec(lat, lon, scale) {
+        const phi = (90 - lat) * Math.PI / 180;
+        const theta = (lon + 180) * Math.PI / 180;
+        const r = R * (scale || 1);
+        const rp = Rp * (scale || 1);
+        return new THREE.Vector3(-r * Math.sin(phi) * Math.cos(theta), rp * Math.cos(phi), r * Math.sin(phi) * Math.sin(theta));
+    }
+
+    const ocean = new THREE.Mesh(
+        new THREE.SphereGeometry(R * 0.995, 64, 48),
+        new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.FrontSide })
+    );
+    ocean.scale.y = Rp / R;
+    group.add(ocean);
+
+    fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/land-10m.json')
+        .then(r => r.json())
+        .then(topo => {
+            const geo = topojson.feature(topo, topo.objects.land);
+            const mat = new THREE.LineBasicMaterial({ color: 0xff1a3c, transparent: true, opacity: 0.95 });
+            function proc(geometry) {
+                const ring = (coords) => {
+                    if (coords.length > 3) {
+                        const pts = coords.map(c => latLonToVec(c[1], c[0], 1.0));
+                        group.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), mat.clone()));
+                    }
+                };
+                if (geometry.type === 'Polygon') geometry.coordinates.forEach(ring);
+                else if (geometry.type === 'MultiPolygon') geometry.coordinates.forEach(p => p.forEach(ring));
+            }
+            if (geo.type === 'FeatureCollection') geo.features.forEach(f => proc(f.geometry));
+            else if (geo.type === 'Feature') proc(geo.geometry);
+            else proc(geo);
+        }).catch(() => {});
+
+    const nodes = [
+        { lat: 40.7, lon: -74 }, { lat: 37.8, lon: -122.4 }, { lat: 51.5, lon: -0.1 },
+        { lat: 48.9, lon: 2.3 }, { lat: 50.1, lon: 8.7 }, { lat: 35.7, lon: 139.7 },
+        { lat: 1.3, lon: 103.8 }, { lat: 22.3, lon: 114.2 }, { lat: -23.5, lon: -46.6 },
+        { lat: -33.9, lon: 18.4 }, { lat: 25.3, lon: 55.3 }, { lat: -33.9, lon: 151.2 }
+    ];
+    const nodeGeo = new THREE.SphereGeometry(0.025, 12, 12);
+    const nodeMat = new THREE.MeshBasicMaterial({ color: 0xff4359 });
+    const glowGeo = new THREE.SphereGeometry(0.05, 12, 12);
+    const glowMat = new THREE.MeshBasicMaterial({ color: 0xff4359, transparent: true, opacity: 0.4 });
+    const nodeObjs = [];
+    nodes.forEach(n => {
+        const pos = latLonToVec(n.lat, n.lon, 1.01);
+        const nd = new THREE.Mesh(nodeGeo, nodeMat.clone());
+        nd.position.copy(pos); group.add(nd);
+        const gl = new THREE.Mesh(glowGeo, glowMat.clone());
+        gl.position.copy(pos); group.add(gl);
+        nodeObjs.push({ glow: gl });
+    });
+
+    group.rotation.x = 0.3;
+    group.rotation.y = 1.62;
+    scene.add(group);
+
+    let t = 0;
+    let spinStartTime = null;
+    const SPIN_DURATION = 10;
+    const BASE_SPEED = 0.003;
+    const MAX_SPEED = 1000 * 2 * Math.PI / 60;
+
+    function resize() {
+        const w = canvas.parentElement.clientWidth || 400;
+        const h = canvas.parentElement.clientHeight || 400;
+        renderer.setSize(w, h);
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+    }
+    resize();
+    new ResizeObserver(resize).observe(canvas.parentElement);
+
+    function animate() {
+        requestAnimationFrame(animate);
+        t += 0.016;
+        if (spinStartTime !== null) {
+            const elapsed = (performance.now() - spinStartTime) / 1000;
+            const progress = Math.min(elapsed / SPIN_DURATION, 1);
+            const expFactor = Math.pow(MAX_SPEED / BASE_SPEED, progress);
+            group.rotation.y += BASE_SPEED * expFactor;
+        } else {
+            group.rotation.y += BASE_SPEED;
+        }
+        nodeObjs.forEach((o, i) => {
+            o.glow.material.opacity = 0.35 + Math.sin(t * 2.5 + i * 0.3) * 0.25;
+            const s = 1 + Math.sin(t * 2 + i * 0.25) * 0.4;
+            o.glow.scale.set(s, s, s);
+        });
+        renderer.render(scene, camera);
+    }
+    animate();
+
+    window._startGlobeSpin = function() { spinStartTime = performance.now(); };
+}
+
+/* main loading sequence */
+async function runLoadingSequence() {
+    const terminalBody = document.getElementById('terminalBody');
+    const progressBar = document.getElementById('progressBar');
+    const progressLabel = document.getElementById('progressLabel');
+    const globeContainer = document.getElementById('globeContainer');
+    const terminal = document.getElementById('loadingTerminal');
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    initLoadingGlobe();
+    const capTimer = setTimeout(finishLoading, 10000);
+    const d = (ms) => new Promise(r => setTimeout(r, ms));
+    const typeSpeed = 2;
+
+    function updateProgress(pct) {
+        pct = Math.min(pct, 99);
+        if (progressBar) progressBar.style.width = pct + '%';
+        if (progressLabel) progressLabel.textContent = pct + '%';
+    }
+
+    async function typeText(el, text) {
+        if (reducedMotion) { el.textContent = text; return; }
+        for (let i = 0; i < text.length; i++) {
+            if (loadingDone) return;
+            el.textContent += text[i];
+            terminalBody.scrollTo({ top: terminalBody.scrollHeight, behavior: 'smooth' });
+            await d(typeSpeed + Math.random() * 2);
+        }
+    }
+
+    async function addPrompt(cmd) {
+        if (loadingDone) return;
+        const line = document.createElement('div');
+        line.className = 'terminal-line';
+        const ps = document.createElement('span');
+        ps.className = 'terminal-prompt';
+        ps.textContent = 'root@dlt-node:~# ';
+        line.appendChild(ps);
+        const cs = document.createElement('span');
+        cs.className = 'terminal-cmd terminal-typing';
+        line.appendChild(cs);
+        const cur = document.createElement('span');
+        cur.className = 'terminal-cursor';
+        line.appendChild(cur);
+        terminalBody.appendChild(line);
+        terminalBody.scrollTo({ top: terminalBody.scrollHeight, behavior: 'smooth' });
+        await typeText(cs, cmd);
+        cur.remove();
+        await d(8);
+    }
+
+    function addLine(text, type) {
+        if (loadingDone) return null;
+        const el = document.createElement('div');
+        el.className = 'terminal-line ' + (type || '');
+        el.textContent = text;
+        terminalBody.appendChild(el);
+        terminalBody.scrollTo({ top: terminalBody.scrollHeight, behavior: 'smooth' });
+        if (!reducedMotion && Math.random() < 0.08) corruptAndCorrect(el);
+        return el;
+    }
+
+    /* PHASE 1: globe centered */
+    await d(2000);
+    if (loadingDone) return;
+
+    /* PHASE 2: slide globe left + spin + show terminal */
+    globeContainer.classList.add('slid-left');
+    if (window._startGlobeSpin) window._startGlobeSpin();
+    await d(800);
+    terminal.classList.add('visible');
+    await d(600);
+    if (loadingDone) return;
+
+    /* PHASE 3: terminal boot */
+    addLine('xCoin CORE — Distributed Ledger Technologies', 'info');
+    await d(40);
+    addLine('Architecture: UTXO chain | PoW: MetalDAG (memory-hard) | Sigs: ML-DSA-65', '');
+    await d(40);
+    addLine('', '');
+    updateProgress(5);
+
+    await addPrompt('apt update && apt install xcoin-node -y');
+    await d(20);
+    addLine('Hit:1 https://repo.xcoinproject.com/debian stable InRelease', '');
+    await d(15);
+    addLine('Reading package lists... Done', '');
+    await d(15);
+    addLine('Setting up xcoin-node (2.0.0-1) ...', '');
+    await d(20);
+
+    const barW = 25;
+    const installEl = addLine('[install] \u2502' + '\u2591'.repeat(barW) + '\u2502 0%', '');
+    for (let s = 1; s <= 20; s++) {
+        if (loadingDone) break;
+        const pct = Math.floor((s / 20) * 100);
+        const filled = Math.floor((s / 20) * barW);
+        installEl.textContent = '[install] \u2502' + '\u2588'.repeat(filled) + '\u2591'.repeat(barW - filled) + '\u2502 ' + pct + '%';
+        await d(12 + Math.floor(Math.random() * 8));
+    }
+    addLine('[  OK  ] xcoin-node installed successfully', 'success');
+    updateProgress(18);
+    await d(30);
+
+    await addPrompt('systemctl start xcoin-node.service');
+    await d(15);
+    addLine('[  OK  ] Started xCoin Node Service', 'success');
+    await d(20);
+    updateProgress(24);
+
+    addLine('[CRYPTO] ML-DSA-65 (FIPS 204) .................. READY', 'success');
+    await d(15);
+    addLine('[CRYPTO] SHA-256d (header chain) ............... READY', 'success');
+    await d(15);
+    addLine('[CRYPTO] keccak-256 (MetalDAG) ................. READY', 'success');
+    await d(20);
+    updateProgress(32);
+
+    addLine('[NET] P2P transport binding TCP :8433 .......... OK', 'success');
+    await d(12);
+    addLine('[NET] RPC binding TCP :8432 .................... OK', 'success');
+    await d(20);
+    addLine('', '');
+    updateProgress(38);
+
+    await addPrompt('xcoin-node --bootstrap --dag-epoch=0');
+    await d(15);
+    addLine('[DAG] Generating MetalDAG epoch 0 dataset (1.00 GiB)...', 'info');
+    await d(25);
+
+    const peers = [
+        { ip: '198.51.100.14', city: 'New York',      ms: 23 },
+        { ip: '203.0.113.42',  city: 'San Francisco', ms: 45 },
+        { ip: '185.34.52.100', city: 'Frankfurt',     ms: 89 },
+        { ip: '103.28.71.9',   city: 'Singapore',     ms: 142 },
+        { ip: '45.77.200.11',  city: 'Tokyo',         ms: 156 },
+        { ip: '177.54.128.3',  city: 'São Paulo',     ms: 178 },
+        { ip: '41.203.18.22',  city: 'Lagos',         ms: 195 },
+        { ip: '13.245.88.41',  city: 'Sydney',        ms: 210 },
+    ];
+
+    for (let i = 0; i < peers.length; i++) {
+        if (loadingDone) break;
+        const v = peers[i];
+        const lat = v.ms + Math.floor(Math.random() * 20 - 10);
+        addLine('[PEER] ' + v.ip + ':8433 (' + v.city + ') .... OK ' + lat + 'ms', 'success');
+        updateProgress(42 + Math.floor((i / peers.length) * 40));
+        await d(25 + Math.floor(Math.random() * 15));
+    }
+
+    await d(20);
+    addLine('', '');
+    addLine('[MESH] 8 peers connected | 6 continents | PQ-secured', 'success');
+    await d(20);
+    addLine('[CONSENSUS] MetalDAG proof-of-work active | ML-DSA spends enforced', 'success');
+    await d(20);
+    addLine('[CHAIN] Supply cap: 21,000,000 XAT | Reward: 50 XAT/block (flat)', 'info');
+    await d(20);
+    updateProgress(92);
+
+    addLine('[CHAIN] MetalDAG epoch 0 | DAG 1.00 GiB | mining open to all', 'info');
+    await d(20);
+    addLine('', '');
+    addLine('[SYSTEM] All services nominal — launching interface...', 'success');
+    updateProgress(99);
+
+    await d(300);
+    clearTimeout(capTimer);
+    finishLoading();
+}
+
+window.addEventListener('load', () => {
+    if (shouldSkipLoading()) skipLoadingAndScrollToHash();
+    else runLoadingSequence();
+});
+
+document.addEventListener('keydown', function(e) {
+    if ((e.key === 'Enter' || e.key === ' ') &&
+        !document.getElementById('loadingScreen').classList.contains('hidden')) {
+        e.preventDefault();
+        skipLoading();
+    }
+});
 </script>
 </body>
 </html>
