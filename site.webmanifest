@@ -1,11 +1,11 @@
 {
   "name": "DLT",
   "short_name": "DLT",
-  "description": "Enterprise Blockchain Infrastructure - Building the Future of Digital Finance",
+  "description": "Public infrastructure for digital independence",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#000000",
-  "theme_color": "#ff1a3c",
+  "background_color": "#ffffff",
+  "theme_color": "#c7ff2e",
   "icons": [
     {
       "src": "/icon-192x192.png",
