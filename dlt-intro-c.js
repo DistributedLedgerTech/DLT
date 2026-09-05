@@ -83,6 +83,7 @@
 
     resize() {
       const rect = this.canvas.getBoundingClientRect();
+      if (this.last && (!rect.width || !rect.height)) return; /* hidden after the exit */
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       const cssW = Math.max(120, rect.width || 120);
       const cssH = Math.max(120, rect.height || cssW);
@@ -94,8 +95,8 @@
       this.small = cssW < 420;
       const across = cssW >= 520 ? 80 : cssW >= 400 ? 64 : 52;
       this.cx = this.w / 2;
-      this.cy = this.h * 0.455;
-      this.R = Math.min(this.w, this.h) * 0.365;
+      this.cy = this.h * 0.45;
+      this.R = Math.min(this.w, this.h) * 0.38;
       this.cell = (this.R * 2) / across;
       this.K = 0.045; /* barrel amount */
       this.buildAtlas();
@@ -105,6 +106,7 @@
       this.bloom.width = Math.max(8, Math.round(this.w / 6));
       this.bloom.height = Math.max(8, Math.round(this.h / 6));
       this.bloomCtx = this.bloom.getContext('2d');
+      if (this.last) this.draw(this.last.now, this.last.t, this.last.phase);
     }
 
     warpX(x, y) {
@@ -192,6 +194,8 @@
       this.nX = NX; this.nY = NY; this.nZ = NZ; this.cellR = RR; this.cellRow = ROW; this.cellRnd = RND;
       this.rowY = new Float32Array(cols);
       for (let j = 0; j < cols; j += 1) this.rowY[j] = top + (j + 0.5) * cell;
+      this.rowShift = new Float32Array(cols);
+      this.rowGhost = new Uint8Array(cols);
     }
 
     buildFeed() {
@@ -212,7 +216,7 @@
     }
 
     buildStrips() {
-      const fs = Math.max(8, Math.min(11, this.w / this.dpr * 0.0175)) * this.dpr;
+      const fs = Math.max(8.5, Math.min(12, this.w / this.dpr * 0.019)) * this.dpr;
       const rowH = Math.ceil(fs * 1.5);
       this.feedFont = fs;
       this.feedRowH = rowH;
@@ -259,6 +263,7 @@
     /* ---------- frame ---------- */
 
     draw(now, t, phase) {
+      this.last = { now, t, phase };
       const ctx = this.ctx;
       const w = this.w; const h = this.h;
       const R = this.R; const cx = this.cx; const cy = this.cy;
@@ -320,8 +325,8 @@
         this.bands = [];
       }
       const bands = this.bands;
-      const rowShift = this.rowShift || (this.rowShift = new Float32Array(this.rows));
-      const rowGhost = this.rowGhost || (this.rowGhost = new Uint8Array(this.rows));
+      const rowShift = this.rowShift;
+      const rowGhost = this.rowGhost;
       rowShift.fill(0); rowGhost.fill(0);
       for (let b = 0; b < bands.length; b += 1) {
         const band = bands[b];
@@ -391,7 +396,7 @@
           const a = 0.045 + diffuse * 0.12 + twilight * 0.34 + rim * 0.12 * lit;
           if (a < 0.05) continue;
           ctx.globalAlpha = a > 1 ? 1 : a;
-          if (spec > 0.35) {
+          if (spec > 0.5) {
             ctx.fillStyle = WHITE;
             ctx.fillRect(x - dotSize, y - dotSize, dotSize * 2, dotSize * 2);
             ctx.fillStyle = LIME;
@@ -406,7 +411,7 @@
         if (g < 1) g = 1; if (g > rampMax) g = rampMax;
         let a = (0.2 + 0.8 * lit) * (0.45 + 0.55 * cov) + rim * 0.22 + twilight * 0.25 * cov;
         if (a > 1) a = 1;
-        const hot = spec > 0.42 && cov > 0.5;
+        const hot = spec > 0.62 && cov > 0.5;
         if (ghost) {
           ctx.globalAlpha = a * 0.45;
           ctx.drawImage(atlas, g * s, s, s, s, x - half - rowShift[row] * 0.6, y - half, s, s);
@@ -440,8 +445,6 @@
       ctx.arc(cx, cy, R * (1 - this.K * 0.55), 0, TAU);
       ctx.stroke();
 
-      this.drawFeed(ctx, tt, glitching);
-
       /* phosphor bloom: downsample the frame and lay it back over itself */
       if (!this.small && this.bloomCtx) {
         const bc = this.bloomCtx; const bw = this.bloom.width; const bh = this.bloom.height;
@@ -451,6 +454,9 @@
         ctx.drawImage(this.bloom, 0, 0, w, h);
         ctx.globalAlpha = 1;
       }
+
+      /* the feed stays crisp: drawn after the bloom */
+      this.drawFeed(ctx, tt, glitching);
 
       /* glitch tears + flash */
       if (glitching) {
@@ -572,7 +578,7 @@
       ctx.globalAlpha = 0.55;
       ctx.fillText('PHOSPHOR RASTER 01', 10 * dpr, Math.round(top - rowH * 1.1));
       /* two rows, opposite directions, drawn in column chunks that follow the tube curve */
-      const chunks = this.small ? 6 : 12;
+      const chunks = this.small ? 18 : 36;
       const cw = w / chunks;
       for (let r = 0; r < 2; r += 1) {
         const strip = this.strips[r];
@@ -581,7 +587,7 @@
         let offset = (t * speed + (glitching ? (this.bands.length ? this.bands[0].dx * 2 : 0) : 0)) % sw;
         if (offset < 0) offset += sw;
         const y = top + r * rowH * 1.1;
-        ctx.globalAlpha = r === 0 ? 0.92 : 0.62;
+        ctx.globalAlpha = r === 0 ? 1 : 0.66;
         for (let c = 0; c < chunks; c += 1) {
           const x0 = c * cw;
           const wx = this.warpX(x0, y); const wx1 = this.warpX(x0 + cw, y);
@@ -638,12 +644,13 @@
       document.removeEventListener('keydown', onKeydown);
       cancelAnimationFrame(animationFrame);
       window.clearTimeout(cap);
+      window.clearTimeout(done);
       lines.forEach((line) => { line.classList.add('is-visible'); line.classList.remove('is-current'); });
       progress.style.width = '100%';
       percent.textContent = '100%';
-      document.body.classList.remove('boot-locked');
       boot.classList.add('is-done');
       if (reduceMotion || !collapse) {
+        document.body.classList.remove('boot-locked');
         boot.setAttribute('hidden', '');
         return;
       }
@@ -657,13 +664,17 @@
       window.setTimeout(() => {
         boot.setAttribute('hidden', '');
         collapse.setAttribute('hidden', '');
+        document.body.classList.remove('boot-locked');
       }, 720);
     };
 
+    /* the sequence has a fixed length on the wall clock, independent of rAF cadence */
     const cap = window.setTimeout(finish, HARD_CAP);
+    const done = window.setTimeout(finish, duration + (reduceMotion ? 0 : 280));
 
-    const tick = (now) => {
+    const tick = () => {
       if (finished) return;
+      const now = performance.now();
       const t = now - started;
       const ratio = Math.min(1, t / duration);
       const value = Math.round(ratio * 100);
@@ -686,8 +697,7 @@
         }
       }
       if (phosphor) phosphor.draw(now, t, reduceMotion ? 'static' : 'run');
-      if (ratio >= 1) window.setTimeout(finish, reduceMotion ? 0 : 280);
-      else animationFrame = requestAnimationFrame(tick);
+      animationFrame = requestAnimationFrame(tick);
     };
 
     skip.addEventListener('click', finish);
@@ -698,7 +708,6 @@
       lines.forEach((line) => line.classList.add('is-visible'));
       progress.style.width = '100%';
       percent.textContent = '100%';
-      window.setTimeout(finish, duration);
     } else {
       animationFrame = requestAnimationFrame(tick);
     }

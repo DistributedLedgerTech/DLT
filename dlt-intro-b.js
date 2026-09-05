@@ -22,6 +22,10 @@
 
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const small = Math.min(window.innerWidth, window.innerHeight) < 720;
+  /* ?intro-t=<seconds> freezes the clock at that moment (design review / render proof) */
+  const scrub = parseFloat(new URLSearchParams(window.location.search).get('intro-t'));
+  const scrubbing = Number.isFinite(scrub);
+  const MAP_AT = 1.55;
 
   /* dlt-site.js found no [data-boot] on this page and released the lock; take it back */
   document.body.classList.add('boot-locked');
@@ -58,7 +62,8 @@
   const N_BLOCKS = small ? 10 : 16;
   const N_POINTS = small ? 4200 : 10500;
   const RING_R = 1.42;
-  const BLOCK = 0.085;
+  const BLOCK = 0.078;
+  const SPIN_END = -0.87;
   const ORBIT_SPEED = 0.55;
   const ARC_SEGS = 48;
   const FLIGHT = 0.42;
@@ -179,11 +184,11 @@
           float shade = smoothstep(-0.35, 0.95, depth);
           float sphereA = 0.22 + 0.78 * shade;
           float twinkle = 0.5 + 0.5 * sin(uTime * 2.6 + aSeed.x * 43.0);
-          float noiseA = 0.25 + 0.55 * twinkle;
+          float noiseA = 0.32 + 0.58 * twinkle;
           float land = max(0.0, 1.0 - abs(raw - 1.0) * 5.0);
           float alive = mix(1.0, aSeed.z, uMapMix);
           vAlpha = (mix(noiseA, sphereA, e) + land * 0.9) * alive * uFade;
-          float size = mix(1.3 + aSeed.w * 1.7, 1.5 + 1.2 * shade, e) * (1.0 + land * 1.3) * uSize;
+          float size = mix(1.5 + aSeed.w * 1.8, 1.5 + 1.2 * shade, e) * (1.0 + land * 1.3) * uSize;
           gl_PointSize = size * uPixelRatio * (uDist / -mv.z);
           gl_Position = projectionMatrix * mv;
         }`,
@@ -239,7 +244,7 @@
       polygonOffsetUnits: 1
     });
     const edgeMat = new THREE.LineBasicMaterial({ color: WHITE, transparent: true, opacity: 0.85 });
-    const pingGeo = new THREE.RingGeometry(0.74, 1, 32);
+    const pingGeo = new THREE.RingGeometry(0.84, 1, 32);
     const up = new THREE.Vector3(0, 1, 0);
     const forward = new THREE.Vector3(0, 0, 1);
     const blocks = SLOTS.slice(0, N_BLOCKS).map((slot, i) => {
@@ -262,8 +267,6 @@
         axis: new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize(),
         from: new THREE.Vector3(),
         fromQ: new THREE.Quaternion(),
-        docked: false,
-        dockedAt: 0,
         dockAt: 0
       };
     });
@@ -315,9 +318,8 @@
     observer.observe(boot);
     observer.observe(visual);
 
-    let spinAngle = 0.9;
-    let mapArrivedAt = null;
-    let dockedCount = 0;
+    let spinBase = null;
+    let mapReadyAt = null;
     let torn = false;
 
     /* land-10m -> equirectangular mask -> fibonacci samples that fall on land */
@@ -388,20 +390,39 @@
       }
       geometry.attributes.aTargetB.needsUpdate = true;
       geometry.attributes.aSeed.needsUpdate = true;
-      mapArrivedAt = uniforms.uProgress.value > 0 && !reduceMotion ? -1 : 0;
+      /* continents resolve once the sphere has formed (MAP_AT), or on arrival if the data is late */
+      mapReadyAt = scrubbing || reduceMotion ? 0 : -1;
     };
     fetch(LAND_URL).then((r) => r.json()).then(applyLand).catch(() => {});
 
-    const update = (t, dt, convergeIn, ringIn, ringOut, doneAt) => {
-      const P = clamp((t - convergeIn[0]) / (convergeIn[1] - convergeIn[0]), 0, 1);
-      uniforms.uProgress.value = P;
-      uniforms.uTime.value = t;
-      if (mapArrivedAt === 0) uniforms.uMapMix.value = 1;
-      else if (mapArrivedAt === -1) { mapArrivedAt = t; }
-      if (mapArrivedAt !== null && mapArrivedAt > 0) uniforms.uMapMix.value = clamp((t - mapArrivedAt) / 0.6, 0, 1);
+    /* spin angle is a closed-form function of t: fast while the globe forms, then a steady turn,
+       so the frame at any moment is deterministic (skip, reduced motion, scrub) */
+    const spinAt = (t, c0, c1, end) => {
+      const swept = (x) => {
+        if (x <= c0) return x;
+        if (x < c1) return c0 + (x - c0) - (x - c0) * (x - c0) / (2 * (c1 - c0));
+        return c0 + (c1 - c0) / 2;
+      };
+      if (spinBase === null) spinBase = SPIN_END - (0.26 * end + 0.5 * swept(end));
+      return spinBase + 0.26 * t + 0.5 * swept(t);
+    };
 
-      if (!reduceMotion) spinAngle += (0.26 + 0.5 * (1 - P)) * dt;
-      spin.rotation.y = spinAngle;
+    const orbitPose = (b, i, t, position, quaternion) => {
+      const a = b.angle + t * ORBIT_SPEED;
+      position.copy(ring.localToWorld(tmp.set(Math.cos(a), 0, Math.sin(a)).multiplyScalar(RING_R)));
+      quaternion.setFromAxisAngle(b.axis, t * 1.4 + i);
+    };
+
+    const update = (t, T, doneAt) => {
+      const [c0, c1] = T.converge;
+      const rawP = (t - c0) / (c1 - c0);
+      const P = clamp(rawP, 0, 1);
+      uniforms.uProgress.value = Math.max(0, rawP);
+      uniforms.uTime.value = t;
+      if (mapReadyAt === -1) mapReadyAt = t;
+      if (mapReadyAt !== null) uniforms.uMapMix.value = clamp((t - Math.max(mapReadyAt, MAP_AT)) / 0.7, 0, 1);
+
+      spin.rotation.y = spinAt(reduceMotion ? T.end : t, c0, c1, T.end);
       tilt.scale.setScalar(radius * (1 + 0.14 * (1 - P)));
       occluder.scale.setScalar(Math.max(0.001, smoothstep(0.25, 0.9, P)));
       tilt.updateMatrixWorld(true);
@@ -409,35 +430,36 @@
       uniforms.uGlobe.value.copy(spin.matrixWorld);
       spin.getWorldQuaternion(spinQ);
 
+      const [ringIn, ringOut] = T.ring;
       ringLine.geometry.setDrawRange(0, Math.round(129 * clamp((t - ringIn) / (ringOut - ringIn), 0, 1)));
       tickMat.opacity = 0.4 * clamp((t - ringOut + 0.2) / 0.4, 0, 1);
 
+      let dockedCount = 0;
       blocks.forEach((b, i) => {
         const appear = clamp((t - ringIn - i * 0.03) / 0.35, 0, 1);
-        if (appear <= 0) { b.mesh.visible = false; return; }
+        if (appear <= 0) { b.mesh.visible = false; b.ping.visible = false; return; }
         b.mesh.visible = true;
         let scale = appear;
         const departAt = b.dockAt - FLIGHT;
         if (t < departAt) {
-          const a = b.angle + t * ORBIT_SPEED;
-          b.mesh.position.copy(ring.localToWorld(tmp.set(Math.cos(a), 0, Math.sin(a)).multiplyScalar(RING_R)));
-          b.mesh.quaternion.setFromAxisAngle(b.axis, t * 1.4 + i);
-          b.from.copy(b.mesh.position);
-          b.fromQ.copy(b.mesh.quaternion);
+          orbitPose(b, i, t, b.mesh.position, b.mesh.quaternion);
+          b.ping.visible = false;
         } else {
-          const slotW = spin.localToWorld(tmp.copy(b.normal).multiplyScalar(1.05));
+          const slotW = spin.localToWorld(tmp2.copy(b.normal).multiplyScalar(1.05));
           const q = tmpQ.copy(spinQ).multiply(b.slotQ);
           const u = clamp((t - departAt) / FLIGHT, 0, 1);
-          if (u < 1) {
+          if (u < 0.999) {
+            orbitPose(b, i, departAt, b.from, b.fromQ);
             const k = easeInOut(u);
-            const nW = tmp2.copy(slotW).sub(center).normalize();
+            const nW = tmp.copy(slotW).sub(center).normalize();
             b.mesh.position.lerpVectors(b.from, slotW, k).addScaledVector(nW, Math.sin(u * Math.PI) * 0.45 * radius);
             b.mesh.quaternion.copy(b.fromQ).slerp(q, k);
+            b.ping.visible = false;
           } else {
             b.mesh.position.copy(slotW);
             b.mesh.quaternion.copy(q);
-            if (!b.docked) { b.docked = true; b.dockedAt = t; dockedCount += 1; }
-            const age = t - b.dockedAt;
+            dockedCount += 1;
+            const age = t - b.dockAt;
             if (!reduceMotion) scale *= 1 + 0.7 * Math.max(0, 1 - age / 0.28);
             if (age < 0.9 && !reduceMotion) {
               b.ping.visible = true;
@@ -453,11 +475,9 @@
       });
 
       arcs.forEach((a) => {
-        const A = blocks[a.i];
-        const B = blocks[a.j];
-        if (!(A.docked && B.docked)) return;
-        const life = t - (Math.max(A.dockedAt, B.dockedAt) + 0.05);
-        if (life <= 0) return;
+        const born = Math.max(blocks[a.i].dockAt, blocks[a.j].dockAt) + 0.05;
+        const life = t - born;
+        if (life <= 0) { a.geo.setDrawRange(0, 0); a.dot.visible = false; return; }
         const seg = Math.min(ARC_SEGS, Math.floor(life / 0.55 * ARC_SEGS));
         a.geo.setDrawRange(0, seg + 1);
         if (seg >= ARC_SEGS) {
@@ -465,6 +485,8 @@
           a.curve.getPoint(u, a.dot.position);
           a.dot.material.opacity = Math.sin(u * Math.PI);
           a.dot.visible = true;
+        } else {
+          a.dot.visible = false;
         }
       });
 
@@ -526,7 +548,6 @@
   };
 
   let started = null;
-  let last = null;
   let raf = 0;
   let phase = 'run';
   let flashFrames = 0;
@@ -576,7 +597,7 @@
 
   /* skip: jump the clock to the end so every block snaps into its slot, then run the normal exit */
   const finish = () => {
-    if (phase !== 'run') return;
+    if (phase !== 'run' || scrubbing) return;
     started = performance.now() - T.end * 1000;
   };
 
@@ -584,21 +605,19 @@
     if (event.key === 'Enter' || event.key === 'Escape') finish();
   };
 
-  const frame = (now) => {
+  const frame = () => {
+    const now = performance.now();
     if (started === null) started = reduceMotion ? now - T.end * 1000 : now;
-    if (last === null) last = now;
-    const dt = Math.min(0.05, (now - last) / 1000);
-    last = now;
-    const t = (now - started) / 1000;
+    const t = scrubbing ? scrub : (now - started) / 1000;
 
     let docked = phase === 'run' ? 0 : N_BLOCKS;
-    if (scene3) docked = scene3.update(t, dt, T.converge, T.ring[0], T.ring[1], doneAt);
+    if (scene3) docked = scene3.update(t, T, doneAt);
     else if (phase === 'run') docked = Math.round(N_BLOCKS * clamp((t - T.dock[0]) / (T.dock[1] - T.dock[0]), 0, 1));
 
     if (phase === 'run') {
       setHooks(t, docked);
       const heldLongEnough = reduceMotion ? (now - (started + T.end * 1000)) / 1000 >= holdUntil : true;
-      if (t >= T.end && heldLongEnough) ready(t);
+      if (t >= T.end && heldLongEnough && !scrubbing) ready(t);
     } else if (phase === 'ready' && flashFrames > 0) {
       flashFrames -= 1;
       if (flashFrames === 0) { flashEl.style.opacity = '0'; done(t); }
