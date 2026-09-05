@@ -1,342 +1,115 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, minimum-scale=1.0">
-    
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-CSZ00L6ZXV"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-CSZ00L6ZXV');
-    </script>
-    
-    <!-- Primary Meta Tags -->
-    <title>404 - Page Not Found | DLT</title>
-    <meta name="title" content="404 - Page Not Found | DLT">
-    <meta name="description" content="The page you're looking for doesn't exist. Return to DLT homepage.">
-    <meta name="robots" content="noindex, nofollow">
-    <meta name="theme-color" content="#000000">
-    
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="404 - Page Not Found | DLT">
-    <meta property="og:description" content="The page you're looking for doesn't exist. Return to DLT homepage.">
-    <meta property="og:image" content="https://distributedledgertechnologies.com/og-image.png">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
-    <meta property="og:site_name" content="DLT">
-    
-    <!-- Twitter -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:site" content="@DLT">
-    <meta name="twitter:title" content="404 - Page Not Found | DLT">
-    <meta name="twitter:description" content="The page you're looking for doesn't exist.">
-    <meta name="twitter:image" content="https://distributedledgertechnologies.com/twitter-image.png">
-    
-    <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-    <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png">
-    <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="shortcut icon" href="/favicon.ico">
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    <meta name="apple-mobile-web-app-title" content="DLT">
-    <link rel="manifest" href="/site.webmanifest">
-    
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="nav.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#c7ff2e">
+  <meta name="color-scheme" content="light">
+  <title>404 Not Found | Distributed Ledger Technologies</title>
+  <meta name="description" content="There is no page at this address on distributedledgertechnologies.com. Head back to the front page, read who I am, or browse the products.">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="canonical" href="https://distributedledgertechnologies.com/404.html">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://distributedledgertechnologies.com/404.html">
+  <meta property="og:title" content="404 Not Found | Distributed Ledger Technologies">
+  <meta property="og:description" content="There is no page at this address. Head back to the front page.">
+  <meta property="og:image" content="https://distributedledgertechnologies.com/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="404 Not Found | Distributed Ledger Technologies">
+  <meta name="twitter:description" content="There is no page at this address. Head back to the front page.">
+  <meta name="twitter:image" content="https://distributedledgertechnologies.com/twitter-image.png">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="stylesheet" href="/dlt-acid.css">
+  <style>
+    .not-found{display:flex;align-items:center;min-height:min(72vh,780px);border-bottom:2px solid var(--line);background:var(--wash)}
+    .not-found .shell{width:min(1100px,calc(100% - 40px))}
+    .not-found .section-head{margin-bottom:0}
+    .not-found h2 span{display:inline-block;background:var(--accent);color:var(--accent-ink);padding:.02em .1em .08em}
+    .not-found .actions{margin-top:40px}
+    .not-found .button-paper{background:var(--paper);color:var(--ink)}
+    @media (max-width:640px){.not-found .shell{width:min(1100px,calc(100% - 22px))}}
+  </style>
 
-    <style>
-        :root {
-            --black: #000000;
-            --dark: #0a0a0a;
-            --cyan: #ff1a3c;
-            --green: #ff4359;
-            --white: #ffffff;
-        }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
-            background: var(--black);
-            color: var(--white);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            position: relative;
-        }
-        
-        /* Grid Background */
-        .grid-bg {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-image: 
-                linear-gradient(rgba(255, 26, 60, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 26, 60, 0.03) 1px, transparent 1px);
-            background-size: 50px 50px;
-            pointer-events: none;
-            z-index: 0;
-        }
-        
-        .content {
-            position: relative;
-            z-index: 1;
-            text-align: center;
-            padding: 40px;
-        }
-        
-        .error-code {
-            font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
-            font-size: clamp(120px, 20vw, 200px);
-            font-weight: 700;
-            color: transparent;
-            -webkit-text-stroke: 2px var(--cyan);
-            text-shadow: 0 0 50px rgba(255, 26, 60, 0.3);
-            line-height: 1;
-            margin-bottom: 20px;
-            animation: glitch 3s infinite;
-        }
-        
-        @keyframes glitch {
-            0%, 90%, 100% { transform: translate(0); }
-            92% { transform: translate(-2px, 2px); }
-            94% { transform: translate(2px, -2px); }
-            96% { transform: translate(-2px, -2px); }
-            98% { transform: translate(2px, 2px); }
-        }
-        
-        .error-title {
-            font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
-            font-size: clamp(14px, 2vw, 18px);
-            letter-spacing: 0.3em;
-            text-transform: uppercase;
-            color: var(--cyan);
-            margin-bottom: 24px;
-        }
-        
-        .error-message {
-            font-size: 18px;
-            color: #ffffff;
-            max-width: 400px;
-            margin: 0 auto 40px;
-            line-height: 1.6;
-        }
-        
-        .home-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 12px;
-            font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
-            font-size: 14px;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            color: var(--black);
-            background: var(--cyan);
-            padding: 16px 32px;
-            text-decoration: none;
-            transition: all 0.3s;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .home-link::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-            transition: left 0.5s;
-        }
-        
-        .home-link:hover::before {
-            left: 100%;
-        }
-        
-        .home-link:hover {
-            background: var(--green);
-            box-shadow: 0 0 30px rgba(255, 67, 89, 0.5);
-            transform: translateY(-2px);
-        }
-        
-        .home-link svg {
-            width: 16px;
-            height: 16px;
-        }
-        
-        /* Logo */
-        .logo {
-            position: absolute;
-            top: 40px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            text-decoration: none;
-        }
-        
-        .logo-icon {
-            width: 50px;
-            height: 50px;
-            border: 2px solid var(--cyan);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-        }
-        
-        .logo-icon::before {
-            content: 'DLT';
-            font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
-            font-size: 14px;
-            font-weight: 700;
-            color: var(--cyan);
-        }
-        
-        .logo-text {
-            font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--white);
-            letter-spacing: 0.1em;
-        }
-        
-        /* Decorative elements */
-        .corner {
-            position: fixed;
-            width: 100px;
-            height: 100px;
-            border: 1px solid rgba(255, 26, 60, 0.2);
-            pointer-events: none;
-        }
-        
-        .corner-tl {
-            top: 20px;
-            left: 20px;
-            border-right: none;
-            border-bottom: none;
-        }
-        
-        .corner-tr {
-            top: 20px;
-            right: 20px;
-            border-left: none;
-            border-bottom: none;
-        }
-        
-        .corner-bl {
-            bottom: 20px;
-            left: 20px;
-            border-right: none;
-            border-top: none;
-        }
-        
-        .corner-br {
-            bottom: 20px;
-            right: 20px;
-            border-left: none;
-            border-top: none;
-        }
-        
-        /* Scan line effect */
-        .scanline {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, transparent, var(--cyan), transparent);
-            opacity: 0.1;
-            animation: scan 4s linear infinite;
-            pointer-events: none;
-        }
-        
-        @keyframes scan {
-            0% { top: 0; }
-            100% { top: 100%; }
-        }
-        
-        /* Terminal style text */
-        .terminal-text {
-            font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
-            font-size: 12px;
-            color: rgba(255, 26, 60, 0.4);
-            position: absolute;
-            bottom: 40px;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-        
-        .terminal-text::before {
-            content: '> ';
-            color: var(--green);
-        }
-        
-        @media (max-width: 768px) {
-            .logo {
-                top: 20px;
-            }
-            
-            .corner {
-                width: 50px;
-                height: 50px;
-            }
-            
-            .error-message {
-                padding: 0 20px;
-            }
-        }
-    </style>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-CSZ00L6ZXV"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-CSZ00L6ZXV');
+  </script>
+  <script src="https://analytics.ahrefs.com/analytics.js" data-key="/HKZthPLm4kgztiUAZllYQ" async></script>
 </head>
 <body>
-    <div class="grid-bg"></div>
-    <div class="scanline"></div>
-    
-    <div class="corner corner-tl"></div>
-    <div class="corner corner-tr"></div>
-    <div class="corner corner-bl"></div>
-    <div class="corner corner-br"></div>
-    
-    <a href="index.html" class="logo">
-        <div class="logo-icon"></div>
-        <span class="logo-text">DLT</span>
-    </a>
-    
-    <div class="content">
-        <div class="error-code">404</div>
-        <div class="error-title">Block Not Found</div>
-        <p class="error-message">
-            The page you're looking for doesn't exist on this ledger. It may have been moved, deleted, or never existed.
-        </p>
-        <a href="index.html" class="home-link">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-                <polyline points="9 22 9 12 15 12 15 22"/>
-            </svg>
-            Return Home
-        </a>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="utility-bar">
+      <div class="shell utility-inner">
+        <p>Error file · 404</p>
+        <a href="/#proof"><span class="status-dot" aria-hidden="true"></span>xCoin mainnet live</a>
+      </div>
     </div>
-    
-    <div class="terminal-text">ERROR: REQUESTED_BLOCK_NOT_FOUND</div>
+    <div class="shell nav-row">
+      <a class="brand" href="/" aria-label="Distributed Ledger Technologies home">
+        <span class="brand-mark" aria-hidden="true">DL</span>
+        <span class="brand-copy"><strong>Distributed Ledger</strong><span>Technologies</span></span>
+      </a>
+      <nav class="desktop-nav" aria-label="Primary navigation">
+        <a href="/whoami.html">WhoAmI</a>
+        <a href="/#proof">Proof</a>
+        <a href="/#products">Products</a>
+        <a href="/#community">Community</a>
+        <a href="/#careers">Careers</a>
+      </nav>
+      <a class="nav-cta" href="/contact.html">Contact me <span aria-hidden="true">→</span></a>
+      <details class="mobile-menu" data-mobile-menu>
+        <summary>Menu</summary>
+        <nav class="mobile-menu-panel" aria-label="Mobile navigation">
+          <span class="menu-label">Navigate</span>
+          <a href="/whoami.html">WhoAmI</a>
+          <a href="/#proof">Proof</a>
+          <a href="/#products">Products</a>
+          <a href="/#community">Community</a>
+          <a href="/#careers">Careers</a>
+          <a class="menu-primary" href="/contact.html">Contact me →</a>
+        </nav>
+      </details>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="section not-found" aria-labelledby="not-found-title">
+      <div class="shell">
+        <div class="section-head">
+          <div>
+            <p class="section-index">[404] NOT FOUND</p>
+            <h2 id="not-found-title">There is no page <span>at this address.</span></h2>
+          </div>
+          <p>I checked the index and nothing is recorded here. The link may be stale, or the page may have moved while I rebuilt the site. Everything I publish is still one click away.</p>
+        </div>
+        <div class="actions">
+          <a class="button button-primary" href="/">Front page</a>
+          <a class="button button-ink" href="/whoami">Who I am</a>
+          <a class="button button-paper" href="/#products">Products</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="shell footer-grid">
+      <div class="footer-brand"><a class="brand" href="/" aria-label="Distributed Ledger Technologies home"><span class="brand-mark" aria-hidden="true">DL</span><span class="brand-copy"><strong>Distributed Ledger</strong><span>Technologies</span></span></a><p>Public infrastructure for digital independence.</p></div>
+      <div><h2>Explore</h2><a href="/whoami.html">WhoAmI</a><a href="/#proof">Network proof</a><a href="/#products">Product stack</a><a href="/#community">Community</a></div>
+      <div><h2>Participate</h2><a href="https://www.xcoinminer.com" target="_blank" rel="noopener">Start mining ↗</a><a href="https://www.superknet.com" target="_blank" rel="noopener">Verify the network ↗</a><a href="https://www.minedifferent.com" target="_blank" rel="noopener">Join the community ↗</a><a href="/#careers">Future careers</a></div>
+      <div><h2>Company</h2><a href="/contact.html">Contact</a><a href="/pitch-deck.html">Pitch deck</a><a href="/sitemap.html">Sitemap</a></div>
+      <div><h2>Legal</h2><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a><a href="/cookies.html">Cookies</a></div>
+    </div>
+    <div class="shell footer-bottom"><p>© <span data-year>2026</span> Distributed Ledger Technologies</p><p>Built for people who verify.</p></div>
+  </footer>
+  <script src="/dlt-site.js" defer></script>
 </body>
 </html>

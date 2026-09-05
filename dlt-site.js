@@ -120,9 +120,14 @@
     let animationFrame;
     const started = performance.now();
 
+    const onKeydown = (event) => {
+      if (event.key === 'Enter' || event.key === 'Escape') finish();
+    };
+
     const finish = () => {
       if (finished) return;
       finished = true;
+      document.removeEventListener('keydown', onKeydown);
       cancelAnimationFrame(animationFrame);
       lines.forEach((line) => line.classList.add('is-visible'));
       progress.style.width = '100%';
@@ -143,9 +148,7 @@
     };
 
     skip.addEventListener('click', finish);
-    document.addEventListener('keydown', (event) => {
-      if (event.key === 'Enter' || event.key === 'Escape') finish();
-    }, { once: true });
+    document.addEventListener('keydown', onKeydown);
     animationFrame = requestAnimationFrame(tick);
   } else {
     document.body.classList.remove('boot-locked');

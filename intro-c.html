@@ -30,8 +30,42 @@
   <link rel="manifest" href="/site.webmanifest">
 
   <link rel="stylesheet" href="dlt-acid.css">
+  <style>
+    /* Variant C "Phosphor": CRT boot screen. Lime #c7ff2e, white, ink only. */
+    .boot-screen{transform-origin:50% 50%;transition:none;will-change:transform}
+    .boot-screen::before{content:"";position:absolute;left:0;right:0;top:-24vh;height:22vh;z-index:3;pointer-events:none;background:linear-gradient(180deg,rgba(199,255,46,0) 0%,rgba(199,255,46,.045) 50%,rgba(199,255,46,0) 100%);animation:boot-roll 5.2s linear infinite}
+    .boot-screen::after{content:"";position:absolute;inset:0;z-index:3;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.26) 0 1px,rgba(0,0,0,0) 1px 3px)}
+    @keyframes boot-roll{to{transform:translateY(150vh)}}
+    .boot-visual{border-color:#2a2a2a;background:#0b0b0b;box-shadow:0 0 0 1px #0b0b0b,0 0 40px rgba(199,255,46,.08)}
+    .boot-visual::before,.boot-visual::after{display:none}
+    .boot-visual .boot-globe{image-rendering:auto}
+    .globe-label{z-index:2;background:#0b0b0b}
+    .globe-label-b{top:12px;right:12px;bottom:auto}
+    .globe-corner{position:absolute;width:14px;height:14px;border:1px solid var(--accent);z-index:2;opacity:.8}
+    .globe-corner-a{left:-1px;bottom:-1px;border-top:0;border-right:0}
+    .globe-corner-b{right:-1px;bottom:-1px;border-top:0;border-left:0}
+    .boot-terminal{box-shadow:12px 12px 0 var(--accent),0 0 48px rgba(199,255,46,.12)}
+    .boot-terminal-body p{color:#e6e6e6;text-shadow:0 0 7px rgba(199,255,46,.38)}
+    .boot-terminal-body p.is-current::after{content:"\2588";margin-left:4px;color:var(--accent);animation:boot-blink .9s steps(2,end) infinite}
+    @keyframes boot-blink{50%{opacity:0}}
+    .boot-progress span{background:repeating-linear-gradient(90deg,var(--accent) 0 6px,rgba(199,255,46,0) 6px 8px);box-shadow:0 0 10px rgba(199,255,46,.35)}
+    .boot-terminal-foot span:first-child{font-variant-numeric:tabular-nums;text-shadow:0 0 8px rgba(199,255,46,.55)}
+    .boot-screen.is-glitch .boot-terminal{animation:boot-jitter .22s steps(3,end) 1}
+    @keyframes boot-jitter{0%{transform:translate(-3px,0)}33%{transform:translate(4px,-1px)}66%{transform:translate(-2px,1px)}100%{transform:none}}
+    /* cathode collapse exit */
+    .boot-screen.is-done{visibility:visible;transform:scale(1,.004);transition:transform .34s cubic-bezier(.8,0,.95,.4)}
+    .boot-screen.is-done::before,.boot-screen.is-done::after{display:none}
+    .boot-screen.is-done.is-dot{transform:scale(.002,.004);opacity:0;transition:transform .34s cubic-bezier(.2,.8,.2,1),opacity .12s linear .24s}
+    .boot-screen[hidden]{display:none}
+    .boot-collapse{position:fixed;left:50%;top:50%;z-index:1000;width:100vw;height:3px;transform:translate(-50%,-50%);background:#fff;box-shadow:0 0 14px 3px var(--accent),0 0 60px 14px rgba(199,255,46,.55);opacity:0;pointer-events:none}
+    .boot-collapse.is-on{opacity:1;transition:opacity .28s ease-in}
+    .boot-collapse.is-dot{transform:translate(-50%,-50%) scaleX(0);opacity:0;transition:transform .34s cubic-bezier(.2,.8,.2,1),opacity .12s linear .26s}
+    .boot-collapse[hidden]{display:none}
+    .boot-screen.is-noglobe .boot-globe{display:none}
+    @media(prefers-reduced-motion:reduce){.boot-screen::before,.boot-terminal-body p.is-current::after{animation:none}.boot-screen.is-done{transform:none;visibility:hidden}}
+  </style>
   <noscript><style>.boot-screen{display:none}body.boot-locked{overflow:auto}</style></noscript>
-  <script defer src="dlt-site.js"></script>
+  <script defer src="dlt-intro-c.js"></script>
 
   <script type="application/ld+json">
   {
@@ -62,16 +96,16 @@
   <div class="boot-screen" data-boot role="dialog" aria-modal="true" aria-label="DLT system introduction">
     <div class="boot-visual" aria-hidden="true">
       <canvas class="boot-globe" data-globe="intro"></canvas>
-      <div class="globe-axis globe-axis-x"></div>
-      <div class="globe-axis globe-axis-y"></div>
-      <span class="globe-label globe-label-a">NODE / 01</span>
+      <span class="globe-label globe-label-a">CRT / PHOSPHOR</span>
       <span class="globe-label globe-label-b">GLOBAL / READY</span>
+      <span class="globe-corner globe-corner-a"></span>
+      <span class="globe-corner globe-corner-b"></span>
     </div>
     <div class="boot-terminal">
       <div class="boot-terminal-bar"><span>DLT / PUBLIC INFRASTRUCTURE</span><span>● ● ●</span></div>
       <div class="boot-terminal-body" aria-live="polite">
-        <p data-boot-line>Initializing distributed systems...</p>
-        <p data-boot-line>Loading public network map...</p>
+        <p data-boot-line>Warming cathode. Initializing distributed systems...</p>
+        <p data-boot-line>Rasterizing public network map...</p>
         <p data-boot-line>Verifying community entry points...</p>
         <p data-boot-line>System ready. Welcome.</p>
       </div>
@@ -79,6 +113,7 @@
       <div class="boot-terminal-foot"><span data-boot-percent>0%</span><button type="button" data-boot-skip>Skip intro [Enter] →</button></div>
     </div>
   </div>
+  <div class="boot-collapse" data-boot-collapse aria-hidden="true" hidden></div>
 
   <header class="site-header" data-header>
     <div class="utility-bar">

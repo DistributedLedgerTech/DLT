@@ -9,3 +9,4 @@ Sitemap: https://distributedledgertechnologies.com/sitemap.xml
 
 # Crawl-delay (optional, for polite crawlers)
 Crawl-delay: 1
+Disallow: /chrome-extension/

@@ -31,7 +31,25 @@
 
   <link rel="stylesheet" href="dlt-acid.css">
   <noscript><style>.boot-screen{display:none}body.boot-locked{overflow:auto}</style></noscript>
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/land-10m.json" as="fetch" crossorigin>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
   <script defer src="dlt-site.js"></script>
+  <script defer src="dlt-intro-b.js"></script>
+  <style>
+    /* intro variant B: Assembly */
+    .boot-screen.boot-b{background:#0b0b0b;transition:opacity .62s cubic-bezier(.4,0,.2,1),transform .62s cubic-bezier(.4,0,.2,1),filter .62s cubic-bezier(.4,0,.2,1),visibility .62s;will-change:opacity,transform}
+    .boot-screen.boot-b.is-done{opacity:0;transform:scale(1.035);filter:blur(10px);visibility:hidden}
+    .boot-b .boot-gl{position:absolute;inset:0;z-index:1;width:100%;height:100%}
+    .boot-b .boot-scan{position:absolute;inset:0;z-index:2;overflow:hidden;pointer-events:none;background:repeating-linear-gradient(180deg,transparent 0 3px,rgba(11,11,11,.46) 3px 4px)}
+    .boot-b .boot-scan::after{content:"";position:absolute;left:0;right:0;top:-16%;height:14%;background:linear-gradient(180deg,transparent,rgba(255,255,255,.04) 50%,transparent);animation:boot-b-sweep 5.2s linear infinite}
+    @keyframes boot-b-sweep{to{transform:translateY(860%)}}
+    .boot-b .boot-visual,.boot-b .boot-terminal{position:relative;z-index:3}
+    .boot-b .globe-label-b{min-width:118px;text-align:right}
+    .boot-b .boot-flash{position:absolute;inset:0;z-index:6;background:#fff;opacity:0;pointer-events:none}
+    body:has(.boot-b:not(.is-done)){overflow:hidden}
+    @media(prefers-reduced-motion:reduce){.boot-b .boot-scan::after{animation:none}.boot-screen.boot-b{transition:none}}
+  </style>
 
   <script type="application/ld+json">
   {
@@ -59,25 +77,28 @@
 <body class="boot-locked">
   <a class="skip-link" href="#main">Skip to content</a>
 
-  <div class="boot-screen" data-boot role="dialog" aria-modal="true" aria-label="DLT system introduction">
+  <div class="boot-screen boot-b" data-boot-b role="dialog" aria-modal="true" aria-label="DLT system introduction">
+    <canvas class="boot-gl" data-boot-gl aria-hidden="true"></canvas>
+    <div class="boot-scan" aria-hidden="true"></div>
     <div class="boot-visual" aria-hidden="true">
       <canvas class="boot-globe" data-globe="intro"></canvas>
       <div class="globe-axis globe-axis-x"></div>
       <div class="globe-axis globe-axis-y"></div>
-      <span class="globe-label globe-label-a">NODE / 01</span>
-      <span class="globe-label globe-label-b">GLOBAL / READY</span>
+      <span class="globe-label globe-label-a">ASSEMBLY / 01</span>
+      <span class="globe-label globe-label-b" data-boot-label>BLOCKS 00/16</span>
     </div>
     <div class="boot-terminal">
       <div class="boot-terminal-bar"><span>DLT / PUBLIC INFRASTRUCTURE</span><span>● ● ●</span></div>
       <div class="boot-terminal-body" aria-live="polite">
         <p data-boot-line>Initializing distributed systems...</p>
         <p data-boot-line>Loading public network map...</p>
-        <p data-boot-line>Verifying community entry points...</p>
+        <p data-boot-line>Verifying community entry points... <span data-boot-count></span></p>
         <p data-boot-line>System ready. Welcome.</p>
       </div>
       <div class="boot-progress" aria-hidden="true"><span data-boot-progress></span></div>
       <div class="boot-terminal-foot"><span data-boot-percent>0%</span><button type="button" data-boot-skip>Skip intro [Enter] →</button></div>
     </div>
+    <div class="boot-flash" data-boot-flash aria-hidden="true"></div>
   </div>
 
   <header class="site-header" data-header>
